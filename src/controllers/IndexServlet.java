@@ -36,14 +36,36 @@ public class IndexServlet extends HttpServlet {
         // DB接続
         EntityManager em = DBUtil.createEntityManager();
 
-        // tasksクラス(DTO)のクエリーを実行して結果をリスト格納
-        List<tasks> tasks = em.createNamedQuery("getAllTasks", tasks.class).getResultList();
+        // 開くページ数を取得（デフォルトは1ページ目）
+        int page = 1;
+        try {
+            page = Integer.parseInt(request.getParameter("page"));
+        } catch(NumberFormatException e) {}
+
+        // 最大件数と開始位置を指定してtasksクラス(DTO)のクエリーを実行して結果をリスト格納
+        List<tasks> tasks = em.createNamedQuery("getAllTasks", tasks.class)
+                .setFirstResult(15 * (page - 1))
+                .setMaxResults(15)
+                .getResultList();
+
+        // 全件数を取得
+        long tasks_count = (long)em.createNamedQuery("getTasksCount", Long.class)
+                                      .getSingleResult();
 
         // DB切断
         em.close();
 
         // 値セット
         request.setAttribute("tasks", tasks);
+        request.setAttribute("tasks_count", tasks_count);     // 全件数
+        request.setAttribute("page", page);                   // ページ数
+
+        // フラッシュメッセージがセッションスコープにセットされていたら
+        // リクエストスコープに保存する（セッションスコープからは削除）
+        if(request.getSession().getAttribute("flush") != null) {
+            request.setAttribute("flush", request.getSession().getAttribute("flush"));
+            request.getSession().removeAttribute("flush");
+        }
 
         // JSP呼び出し
         RequestDispatcher rd = request.getRequestDispatcher("/WEB-INF/views/tasks/index.jsp");
