@@ -3,7 +3,7 @@
 <c:import url="../layout/app.jsp">
     <c:param name="content">
         <h2>タスク新規作成ページ</h2>
-        <form action="${pageContext.request.contextPath}" method="POST">
+        <form action="${pageContext.request.contextPath}/create" method="POST">
             <c:import url="_form.jsp" />
         </form>
 
